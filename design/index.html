@@ -18,29 +18,43 @@
     <main>
         <section class="intro">
             <p class="eyebrow" data-i18n="eyebrow">PORTFÓLIO · DESIGN</p>
-            <h1 data-i18n="title">Design gráfico e identidade visual.</h1>
+            <h1 data-i18n="title">Portfólio de design.</h1>
             <p class="description" data-i18n="description">
                 Uma seleção de projetos de design gráfico, comunicação visual e identidade.
             </p>
-            <p class="file-size" data-i18n="fileSize">
-                O PDF tem 20,5 MB e só será carregado quando escolheres abrir o portfólio.
-            </p>
-
-            <div class="actions">
-                <button class="open-viewer" type="button" aria-expanded="false" aria-controls="portfolio-viewer" data-i18n="open">
-                    Ver portfólio PDF · 20,5 MB
-                </button>
-                <a class="download-link" href="Portifolio_2026_Chelton_Samussone_Guambe_%5BDesign%5D.pdf" target="_blank" rel="noopener" data-i18n="newTab">
-                    Abrir PDF num novo separador
-                </a>
-            </div>
         </section>
 
-        <section class="viewer-section" aria-label="Visualizador do portfólio">
-            <iframe id="portfolio-viewer" title="Portfólio de design em PDF" hidden></iframe>
+        <section class="reader" aria-label="Livro do portfólio">
+            <div class="book" id="book">
+                <div class="book-cover">
+                    <span class="cover-label" data-i18n="coverLabel">PORTFÓLIO · 2026</span>
+                    <strong>CHELTON<br>SAMUSSONE</strong>
+                    <span class="cover-subtitle" data-i18n="coverSubtitle">DESIGN GRÁFICO<br>IDENTIDADE VISUAL</span>
+                    <button class="open-book" type="button" data-i18n="open">Abrir portfólio</button>
+                </div>
+                <div class="book-pages" hidden>
+                    <div class="book-page left-page">
+                        <canvas aria-label="Página esquerda"></canvas>
+                    </div>
+                    <div class="book-page right-page">
+                        <canvas aria-label="Página direita"></canvas>
+                    </div>
+                </div>
+                <p class="reader-error" role="alert" hidden></p>
+            </div>
+
+            <div class="reader-controls" hidden>
+                <button class="previous-page" type="button" aria-label="Página anterior" data-i18n="previous">← Anterior</button>
+                <div class="page-status">
+                    <span class="page-count" aria-live="polite">1 / 1</span>
+                    <span class="page-progress"><span></span></span>
+                </div>
+                <button class="next-page" type="button" aria-label="Página seguinte" data-i18n="next">Seguinte →</button>
+            </div>
+            <p class="reader-hint" data-i18n="hint">Folheia com os botões ou as teclas ← →.</p>
         </section>
     </main>
 
-    <script src="script.js"></script>
+    <script src="script.js" type="module"></script>
 </body>
 </html>
