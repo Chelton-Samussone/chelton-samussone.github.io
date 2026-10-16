@@ -105,7 +105,7 @@ body:not(.reader-open) .reader {
     place-items: end center;
     overflow: hidden;
     padding: clamp(24px, 5vh, 56px) 24px;
-    background: #191a18;
+    background: #1B1D1C;
     color: #f4f3ef;
 }
 
