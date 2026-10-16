@@ -1,6 +1,6 @@
 const pdfjsVersion = '4.10.38';
 const pdfjsUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.min.mjs`;
-const pdfWorkerUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.worker.min.mjs`;
+const pdfjsWorkerUrl = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.worker.min.mjs`;
 const pdfUrl = 'Portifolio_2026_Chelton_Samussone_Guambe_%5BDesign%5D.pdf';
 
 const translations = {
@@ -13,12 +13,8 @@ const translations = {
         coverLabel: 'PORTFÓLIO · 2026',
         coverSubtitle: 'DESIGN GRÁFICO<br>IDENTIDADE VISUAL',
         open: 'Abrir portfólio',
-        previous: '← Anterior',
-        next: 'Seguinte →',
-        previousLabel: 'Página anterior',
-        nextLabel: 'Página seguinte',
-        hint: 'Folheia com os botões ou as teclas ← →.',
-        loading: 'A preparar o livro…',
+        hint: 'Percorre o portfólio fazendo scroll pela página.',
+        loading: 'A preparar o portfólio…',
         loadError: 'Não foi possível abrir o portfólio. Verifica a ligação à internet e tenta novamente.',
         pageLabel: 'Página'
     },
@@ -31,12 +27,8 @@ const translations = {
         coverLabel: 'PORTFOLIO · 2026',
         coverSubtitle: 'GRAPHIC DESIGN<br>VISUAL IDENTITY',
         open: 'Open portfolio',
-        previous: '← Previous',
-        next: 'Next →',
-        previousLabel: 'Previous page',
-        nextLabel: 'Next page',
-        hint: 'Turn pages with the buttons or the ← → keys.',
-        loading: 'Preparing the book…',
+        hint: 'Scroll down the page to browse the portfolio.',
+        loading: 'Preparing the portfolio…',
         loadError: 'Could not open the portfolio. Check your internet connection and try again.',
         pageLabel: 'Page'
     }
@@ -49,6 +41,7 @@ const preferredLanguage = browserLanguages
     .map((language) => language.toLowerCase().split('-')[0])
     .find((language) => language === 'pt' || language === 'en');
 let language = preferredLanguage || 'pt';
+const pageStates = new Map();
 
 function setLanguage(nextLanguage) {
     language = nextLanguage;
@@ -73,229 +66,239 @@ function setLanguage(nextLanguage) {
         'aria-label',
         language === 'pt' ? 'Switch language to English' : 'Mudar idioma para português'
     );
-    document.querySelector('.previous-page').setAttribute(
-        'aria-label',
-        strings.previousLabel
-    );
-    document.querySelector('.next-page').setAttribute(
-        'aria-label',
-        strings.nextLabel
-    );
+
+    pageStates.forEach((state) => {
+        const label = state.sheet.querySelector('.sheet-label');
+        label.textContent = `${translations[language].pageLabel} ${state.pageNumber} / ${pdfDocument.numPages}`;
+        state.sheet.setAttribute(
+            'aria-label',
+            `${translations[language].pageLabel} ${state.pageNumber}`
+        );
+        state.canvas.setAttribute(
+            'aria-label',
+            `${translations[language].pageLabel} ${state.pageNumber}`
+        );
+    });
 }
 
 setLanguage(language);
 
 document.querySelector('.language-toggle').addEventListener('click', () => {
     setLanguage(language === 'pt' ? 'en' : 'pt');
-    if (pdfDocument) {
-        updatePageControls();
-    }
 });
 
 const book = document.querySelector('.book');
 const cover = document.querySelector('.book-cover');
-const pages = document.querySelector('.book-pages');
-const controls = document.querySelector('.reader-controls');
 const openButton = document.querySelector('.open-book');
-const previousButton = document.querySelector('.previous-page');
-const nextButton = document.querySelector('.next-page');
-const pageCount = document.querySelector('.page-count');
-const progressBar = document.querySelector('.page-progress span');
+const portfolioPages = document.querySelector('#portfolio-pages');
 const errorMessage = document.querySelector('.reader-error');
-const leftCanvas = document.querySelector('.left-page canvas');
-const rightCanvas = document.querySelector('.right-page canvas');
-
 let pdfDocument;
-let firstPage = 1;
-let renderSequence = 0;
-let isTurning = false;
+let pageObserver;
+let isLoading = false;
 
-function updatePageControls() {
-    const isMobile = window.matchMedia('(max-width: 700px)').matches;
-    const firstVisiblePage = firstPage;
-    const lastVisiblePage = isMobile || firstPage === 1
-        ? firstPage
-        : Math.min(firstPage + 1, pdfDocument.numPages);
-
-    pageCount.textContent = `${translations[language].pageLabel} ${firstVisiblePage}${lastVisiblePage !== firstVisiblePage ? `–${lastVisiblePage}` : ''} / ${pdfDocument.numPages}`;
-    progressBar.style.width = `${(lastVisiblePage / pdfDocument.numPages) * 100}%`;
-    previousButton.disabled = firstPage === 1;
-    nextButton.disabled = lastVisiblePage >= pdfDocument.numPages;
-}
-
-async function renderPage(pageNumber, canvas) {
-    const page = await pdfDocument.getPage(pageNumber);
-    const context = canvas.getContext('2d', { alpha: false });
-    const baseViewport = page.getViewport({ scale: 1 });
-    const pageElement = canvas.parentElement;
-    const isMobile = window.matchMedia('(max-width: 700px)').matches;
-    const availableWidth = pageElement.clientWidth || book.clientWidth / (isMobile ? 1 : 2);
-    const availableHeight = Math.min(window.innerHeight * 0.68, 900);
-    const scale = Math.min(
-        availableWidth / baseViewport.width,
-        availableHeight / baseViewport.height,
-        1.25
-    );
-    const viewport = page.getViewport({ scale });
-    const outputScale = Math.min(window.devicePixelRatio || 1, 1.5);
-
-    canvas.width = Math.floor(viewport.width * outputScale);
-    canvas.height = Math.floor(viewport.height * outputScale);
-    canvas.style.width = `${Math.floor(viewport.width)}px`;
-    canvas.style.height = `${Math.floor(viewport.height)}px`;
-
-    await page.render({
-        canvasContext: context,
-        viewport,
-        transform: outputScale === 1 ? null : [outputScale, 0, 0, outputScale, 0, 0],
-        background: '#fff'
-    }).promise;
-}
-
-async function renderSpread() {
-    const sequence = ++renderSequence;
-    const totalPages = pdfDocument.numPages;
-    const isCover = firstPage === 1;
-    const isMobile = window.matchMedia('(max-width: 700px)').matches;
-    const leftPageNumber = isCover || isMobile ? null : firstPage;
-    const rightPageNumber = isMobile ? firstPage : (isCover ? 1 : firstPage + 1);
-    const leftPageElement = document.querySelector('.left-page');
-    const rightPageElement = document.querySelector('.right-page');
-
-    pages.classList.toggle('is-cover', isCover);
-    leftPageElement.hidden = isCover || isMobile;
-    rightPageElement.hidden = false;
-    book.classList.remove('is-turning');
-
-    const visiblePages = [];
-    if (leftPageNumber !== null && leftPageNumber <= totalPages) {
-        visiblePages.push(renderPage(leftPageNumber, leftCanvas));
-    }
-    if (rightPageNumber <= totalPages) {
-        visiblePages.push(renderPage(rightPageNumber, rightCanvas));
-    }
-
-    await Promise.all(visiblePages);
-    if (sequence !== renderSequence) {
+function showPageError(error, state) {
+    if (error.name === 'RenderingCancelledException') {
         return;
     }
 
-    updatePageControls();
+    console.error(`Unable to render portfolio page ${state.pageNumber}:`, error);
+    errorMessage.textContent = translations[language].loadError;
+    errorMessage.hidden = false;
 }
 
-async function openBook() {
+function releasePage(state) {
+    state.generation += 1;
+    if (state.renderTask) {
+        state.renderTask.cancel();
+        state.renderTask = null;
+    }
+
+    if (state.canvas.width || state.canvas.height) {
+        state.canvas.width = 0;
+        state.canvas.height = 0;
+    }
+    state.rendered = false;
+    state.page?.cleanup();
+}
+
+async function renderPage(state) {
+    if (state.rendering || state.rendered || !state.active) {
+        return;
+    }
+
+    state.rendering = true;
+    const generation = ++state.generation;
+
+    try {
+        const page = await pdfDocument.getPage(state.pageNumber);
+        if (!state.active || generation !== state.generation) {
+            return;
+        }
+
+        state.page = page;
+        const baseViewport = page.getViewport({ scale: 1 });
+        state.content.style.aspectRatio = `${baseViewport.width} / ${baseViewport.height}`;
+
+        const cssScale = state.content.clientWidth / baseViewport.width;
+        const viewport = page.getViewport({ scale: cssScale });
+        const maxCanvasPixels = 8_000_000;
+        const deviceScale = window.devicePixelRatio || 1;
+        const outputScale = Math.min(
+            deviceScale,
+            Math.sqrt(maxCanvasPixels / (viewport.width * viewport.height))
+        );
+
+        state.canvas.width = Math.ceil(viewport.width * outputScale);
+        state.canvas.height = Math.ceil(viewport.height * outputScale);
+
+        const context = state.canvas.getContext('2d', { alpha: false });
+        if (!context) {
+            throw new Error('Canvas rendering context is unavailable.');
+        }
+
+        state.renderTask = page.render({
+            canvasContext: context,
+            viewport,
+            transform: [outputScale, 0, 0, outputScale, 0, 0],
+            background: '#fff'
+        });
+        await state.renderTask.promise;
+
+        if (state.active && generation === state.generation) {
+            state.rendered = true;
+            state.sheet.classList.add('is-rendered');
+        }
+    } catch (error) {
+        showPageError(error, state);
+    } finally {
+        state.renderTask = null;
+        state.rendering = false;
+        if (state.active && !state.rendered && generation !== state.generation) {
+            renderPage(state);
+        }
+    }
+}
+
+function createPage(pageNumber, totalPages) {
+    const sheet = document.createElement('article');
+    sheet.className = 'portfolio-sheet';
+    sheet.dataset.pageNumber = String(pageNumber);
+    sheet.setAttribute('aria-label', `${translations[language].pageLabel} ${pageNumber}`);
+
+    const label = document.createElement('p');
+    label.className = 'sheet-label';
+    label.dataset.pageNumber = String(pageNumber);
+    label.textContent = `${translations[language].pageLabel} ${pageNumber} / ${totalPages}`;
+
+    const content = document.createElement('div');
+    content.className = 'sheet-content';
+
+    const canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-label', `${translations[language].pageLabel} ${pageNumber}`);
+
+    content.append(canvas);
+    sheet.append(label, content);
+
+    const state = {
+        pageNumber,
+        sheet,
+        content,
+        canvas,
+        active: false,
+        rendered: false,
+        rendering: false,
+        renderTask: null,
+        page: null,
+        generation: 0
+    };
+
+    pageStates.set(pageNumber, state);
+    portfolioPages.append(sheet);
+}
+
+async function openPortfolio() {
+    if (isLoading || pdfDocument) {
+        return;
+    }
+
+    isLoading = true;
     openButton.disabled = true;
     openButton.textContent = translations[language].loading;
     errorMessage.hidden = true;
 
     try {
         const pdfjs = await import(pdfjsUrl);
-        pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+        pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
         const loadingTask = pdfjs.getDocument({
             url: pdfUrl,
             disableAutoFetch: true,
             disableStream: true,
-            rangeChunkSize: 65536
+            rangeChunkSize: 262144
         });
         pdfDocument = await loadingTask.promise;
 
+        pageObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                const state = pageStates.get(Number(entry.target.dataset.pageNumber));
+                if (!state) {
+                    return;
+                }
+
+                state.active = entry.isIntersecting;
+                if (state.active) {
+                    renderPage(state);
+                } else if (state.rendered || state.rendering) {
+                    releasePage(state);
+                    state.sheet.classList.remove('is-rendered');
+                }
+            });
+        }, {
+            rootMargin: '300px 0px',
+            threshold: 0
+        });
+
+        portfolioPages.replaceChildren();
+        for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+            createPage(pageNumber, pdfDocument.numPages);
+        }
+
         cover.hidden = true;
-        pages.hidden = false;
-        controls.hidden = false;
-        await renderSpread();
+        portfolioPages.hidden = false;
         openButton.hidden = true;
+        pageStates.forEach((state) => pageObserver.observe(state.sheet));
+        portfolioPages.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
         console.error('Unable to open the design portfolio:', error);
-        cover.hidden = false;
-        pages.hidden = true;
-        controls.hidden = true;
-        openButton.hidden = false;
+        pageObserver?.disconnect();
+        pageStates.clear();
+        portfolioPages.replaceChildren();
+        portfolioPages.hidden = true;
+        pdfDocument?.destroy();
+        pdfDocument = undefined;
         errorMessage.textContent = translations[language].loadError;
         errorMessage.hidden = false;
         openButton.disabled = false;
         openButton.textContent = translations[language].open;
-    }
-}
-
-async function turnPage(direction) {
-    if (!pdfDocument || isTurning) {
-        return;
-    }
-
-    const previousFirstPage = firstPage;
-    const isMobile = window.matchMedia('(max-width: 700px)').matches;
-    firstPage = isMobile
-        ? firstPage + direction
-        : (direction > 0
-            ? (firstPage === 1 ? 2 : firstPage + 2)
-            : (firstPage === 2 ? 1 : firstPage - 2));
-    firstPage = Math.max(1, Math.min(firstPage, pdfDocument.numPages));
-
-    if (firstPage === previousFirstPage) {
-        return;
-    }
-
-    isTurning = true;
-    previousButton.disabled = true;
-    nextButton.disabled = true;
-    book.style.setProperty('--turn-angle', direction > 0 ? '-12deg' : '12deg');
-    book.classList.add('is-turning');
-
-    await new Promise((resolve) => window.setTimeout(resolve, 180));
-    try {
-        await renderSpread();
-    } catch (error) {
-        firstPage = previousFirstPage;
-        console.error('Unable to render portfolio pages:', error);
-        errorMessage.textContent = translations[language].loadError;
-        errorMessage.hidden = false;
     } finally {
-        isTurning = false;
-        updatePageControls();
+        isLoading = false;
     }
 }
 
-openButton.addEventListener('click', openBook);
-previousButton.addEventListener('click', () => turnPage(-1));
-nextButton.addEventListener('click', () => turnPage(1));
-
-document.addEventListener('keydown', (event) => {
-    if (event.key === 'ArrowRight') {
-        turnPage(1);
-    } else if (event.key === 'ArrowLeft') {
-        turnPage(-1);
-    }
-});
-
-let touchStartX = null;
-book.addEventListener('touchstart', (event) => {
-    touchStartX = event.changedTouches[0].clientX;
-}, { passive: true });
-
-book.addEventListener('touchend', (event) => {
-    if (touchStartX === null) {
-        return;
-    }
-
-    const swipeDistance = event.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(swipeDistance) > 50) {
-        turnPage(swipeDistance < 0 ? 1 : -1);
-    }
-
-    touchStartX = null;
-}, { passive: true });
+openButton.addEventListener('click', openPortfolio);
 
 let resizeTimer;
 window.addEventListener('resize', () => {
-    if (!pdfDocument) {
-        return;
-    }
-
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(() => {
-        renderSpread().catch((error) => {
-            console.error('Unable to resize portfolio pages:', error);
+        pageStates.forEach((state) => {
+            if (!state.active || !state.rendered) {
+                return;
+            }
+
+            releasePage(state);
+            state.sheet.classList.remove('is-rendered');
+            renderPage(state);
         });
     }, 180);
 });
