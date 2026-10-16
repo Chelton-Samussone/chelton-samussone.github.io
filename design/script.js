@@ -10,8 +10,6 @@ const translations = {
         eyebrow: 'PORTFÓLIO · DESIGN',
         title: 'Portfólio de design.',
         description: 'Uma seleção de projetos de design gráfico, comunicação visual e identidade.',
-        coverLabel: 'PORTFÓLIO · 2026',
-        coverSubtitle: 'DESIGN GRÁFICO<br>IDENTIDADE VISUAL',
         open: 'Abrir portfólio',
         hint: 'Percorre o portfólio fazendo scroll pela página.',
         loading: 'A preparar o portfólio…',
@@ -24,8 +22,6 @@ const translations = {
         eyebrow: 'PORTFOLIO · DESIGN',
         title: 'Design portfolio.',
         description: 'A selection of graphic design, visual communication and identity projects.',
-        coverLabel: 'PORTFOLIO · 2026',
-        coverSubtitle: 'GRAPHIC DESIGN<br>VISUAL IDENTITY',
         open: 'Open portfolio',
         hint: 'Scroll down the page to browse the portfolio.',
         loading: 'Preparing the portfolio…',
@@ -53,8 +49,6 @@ function setLanguage(nextLanguage) {
 
         if (element instanceof HTMLMetaElement) {
             element.content = translation;
-        } else if (element.classList.contains('cover-subtitle')) {
-            element.innerHTML = translation;
         } else {
             element.textContent = translation;
         }
