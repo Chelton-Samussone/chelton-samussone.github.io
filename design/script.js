@@ -7,9 +7,7 @@ const translations = {
     pt: {
         pageDescription: 'Portfólio de design de Chelton Samussone.',
         back: 'Voltar ao portfólio principal',
-        eyebrow: 'PORTFÓLIO · DESIGN',
-        title: 'Portfólio de design.',
-        description: 'Uma seleção de projetos de design gráfico, comunicação visual e identidade.',
+        coverAlt: 'Capa do portfólio de Chelton Samussone',
         open: 'Abrir portfólio',
         hint: 'Percorre o portfólio fazendo scroll pela página.',
         loading: 'A preparar o portfólio…',
@@ -19,9 +17,7 @@ const translations = {
     en: {
         pageDescription: 'Design portfolio by Chelton Samussone.',
         back: 'Back to main portfolio',
-        eyebrow: 'PORTFOLIO · DESIGN',
-        title: 'Design portfolio.',
-        description: 'A selection of graphic design, visual communication and identity projects.',
+        coverAlt: 'Cover of Chelton Samussone’s portfolio',
         open: 'Open portfolio',
         hint: 'Scroll down the page to browse the portfolio.',
         loading: 'Preparing the portfolio…',
@@ -49,6 +45,8 @@ function setLanguage(nextLanguage) {
 
         if (element instanceof HTMLMetaElement) {
             element.content = translation;
+        } else if (element instanceof HTMLImageElement) {
+            element.alt = translation;
         } else {
             element.textContent = translation;
         }
@@ -257,6 +255,9 @@ async function openPortfolio() {
             createPage(pageNumber, pdfDocument.numPages);
         }
 
+        document.querySelector('.site-header').hidden = false;
+        document.querySelector('.reader-hint').hidden = false;
+        document.body.classList.add('reader-open');
         cover.hidden = true;
         portfolioPages.hidden = false;
         openButton.hidden = true;

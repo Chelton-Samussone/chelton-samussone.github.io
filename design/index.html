@@ -9,32 +9,24 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="site-header">
+    <header class="site-header" hidden>
         <a class="logo" href="../">CHELTON SAMUSSONE</a>
         <a class="back-link" href="../" data-i18n="back">Voltar ao portfólio principal</a>
         <button class="language-toggle" type="button" aria-label="Switch language to English">EN</button>
     </header>
 
     <main>
-        <section class="intro">
-            <p class="eyebrow" data-i18n="eyebrow">PORTFÓLIO · DESIGN</p>
-            <h1 data-i18n="title">Portfólio de design.</h1>
-            <p class="description" data-i18n="description">
-                Uma seleção de projetos de design gráfico, comunicação visual e identidade.
-            </p>
-        </section>
-
         <section class="reader" aria-label="Portfólio em páginas">
             <div class="book" id="book">
                 <div class="book-cover">
-                    <img class="cover-art" src="Capa.jpg" alt="" fetchpriority="high">
+                    <img class="cover-art" src="Capa.jpg" alt="Capa do portfólio de Chelton Samussone" data-i18n="coverAlt" fetchpriority="high">
                     <button class="open-book" type="button" data-i18n="open">Abrir portfólio</button>
                 </div>
                 <div class="portfolio-pages" id="portfolio-pages" hidden></div>
                 <p class="reader-error" role="alert" hidden></p>
             </div>
 
-            <p class="reader-hint" data-i18n="hint">Percorre o portfólio fazendo scroll pela página.</p>
+            <p class="reader-hint" data-i18n="hint" hidden>Percorre o portfólio fazendo scroll pela página.</p>
         </section>
     </main>
 
