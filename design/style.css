@@ -62,6 +62,41 @@ button {
     letter-spacing: 0.06em;
 }
 
+.site-header .whatsapp-link {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 8px 10px;
+    border: 1px solid #111;
+    background: transparent;
+    color: inherit;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-align: center;
+    transition: border-color 0.12s ease;
+}
+
+.site-header .whatsapp-link::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: #25d366;
+    content: "";
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.24s ease 0.12s;
+}
+
+.site-header .whatsapp-link:hover,
+.site-header .whatsapp-link:focus-visible {
+    border-color: #25d366;
+}
+
+.site-header .whatsapp-link:hover::before,
+.site-header .whatsapp-link:focus-visible::before {
+    transform: scaleX(1);
+}
+
 .back-link {
     text-transform: uppercase;
 }
@@ -149,9 +184,31 @@ body:not(.reader-open) .reader {
 }
 
 .portfolio-pages[hidden],
+.portfolio-footer[hidden],
 .book-cover[hidden],
 .reader-error[hidden] {
     display: none;
+}
+
+.portfolio-footer {
+    display: flex;
+    justify-content: center;
+    padding: 36px 0 12px;
+}
+
+.portfolio-footer .whatsapp-link {
+    padding: 10px 14px;
+    background: #25d366;
+    color: #111;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.portfolio-footer .whatsapp-link:hover {
+    background: #55e487;
+    transform: translateY(-2px);
 }
 
 .sheet-label {
@@ -200,6 +257,7 @@ body:not(.reader-open) .reader {
     .site-header {
         gap: 14px;
         padding: 16px 5vw;
+        flex-wrap: wrap;
     }
 
     .logo {

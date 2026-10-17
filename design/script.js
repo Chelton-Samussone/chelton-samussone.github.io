@@ -7,6 +7,7 @@ const translations = {
     pt: {
         pageDescription: 'Portfólio de design de Chelton Samussone.',
         back: 'Voltar ao portfólio principal',
+        contactWhatsApp: 'Falar comigo no WhatsApp',
         coverAlt: 'Capa do portfólio de Chelton Samussone',
         open: 'Abrir portfólio',
         hint: 'Percorre o portfólio fazendo scroll pela página.',
@@ -17,6 +18,7 @@ const translations = {
     en: {
         pageDescription: 'Design portfolio by Chelton Samussone.',
         back: 'Back to main portfolio',
+        contactWhatsApp: 'Contact me on WhatsApp',
         coverAlt: 'Cover of Chelton Samussone’s portfolio',
         open: 'Open portfolio',
         hint: 'Scroll down the page to browse the portfolio.',
@@ -257,6 +259,7 @@ async function openPortfolio() {
 
         document.querySelector('.site-header').hidden = false;
         document.querySelector('.reader-hint').hidden = false;
+        document.querySelector('.portfolio-footer').hidden = false;
         document.body.classList.add('reader-open');
         cover.hidden = true;
         portfolioPages.hidden = false;
